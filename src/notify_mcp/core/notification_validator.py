@@ -75,7 +75,8 @@ class NotificationValidator:
             ValidationError: If validation fails
         """
         # Convert to dict for JSON Schema validation
-        notification_dict = notification.model_dump(mode="json")
+        # Exclude None values so optional fields are omitted from JSON
+        notification_dict = notification.model_dump(mode="json", exclude_none=True)
 
         # Validate against schema
         self.validate(notification_dict)

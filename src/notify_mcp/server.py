@@ -226,20 +226,25 @@ class NotifyMCPServer:
         # Save notification
         await self.storage.save_notification(notification)
 
-        # Route to subscribers
+        # Route to subscribers (in stdio mode, notifications are stored, not pushed)
         stats = await self.router.route_notification(notification)
 
         # Update channel stats
         count = await self.storage.get_notification_count(channel)
         await self.channel_manager.update_channel_stats(channel, count)
 
+        # Get subscriber count for this channel
+        subscriptions = await self.subscription_manager.get_subscribers(channel)
+        subscriber_count = len(subscriptions)
+
         return [
             TextContent(
                 type="text",
                 text=f"✅ Notification published to {channel}\n"
                 f"ID: {notification.metadata.id}\n"
-                f"Delivered to: {stats['delivered']} subscribers\n"
-                f"Filtered out: {stats['filtered']} subscribers",
+                f"Stored for {subscriber_count} subscriber(s)\n"
+                f"Filtered out: {stats['filtered']} subscriber(s)\n\n"
+                f"💡 Retrieve via resource: notification://{channel}/recent",
             )
         ]
 
@@ -373,7 +378,9 @@ class NotifyMCPServer:
         @self.server.read_resource()
         async def read_resource(uri: str) -> str:
             """Read a resource."""
-            parts = uri.split("://")
+            # Convert AnyUrl to string if needed
+            uri_str = str(uri)
+            parts = uri_str.split("://")
             if len(parts) != 2:
                 raise ValueError(f"Invalid URI: {uri}")
 
@@ -402,7 +409,7 @@ class NotifyMCPServer:
                 notifications = await self.storage.get_notifications(channel, limit=50)
 
                 return json.dumps(
-                    [n.model_dump(mode="json") for n in notifications],
+                    [n.model_dump(mode="json", exclude_none=True) for n in notifications],
                     indent=2,
                 )
 
@@ -414,7 +421,7 @@ class NotifyMCPServer:
                 if not channel:
                     raise ValueError(f"Channel not found: {channel_id}")
 
-                return json.dumps(channel.model_dump(mode="json"), indent=2)
+                return json.dumps(channel.model_dump(mode="json", exclude_none=True), indent=2)
 
             else:
                 raise ValueError(f"Unknown resource scheme: {scheme}")

@@ -50,17 +50,17 @@
   	Ask Claude Code:
   		"Subscribe to general channel, filtering only critical priority notifications with tag 'security'"
   	Then:
-  		"Publish a medium priority notification to general channel with tag 'feature'"
+  		"Publish a medium priority notification to general channel with tag 'feature' and title='Login UI' and body='to be done'
   	Expected result: 
 		The notification should be filtered out (not delivered to this subscription).
  	Then:
-  		"Publish a critical priority notification to general channel with tag 'security'"
+		"Publish a critical priority notification to general channel with tag 'security' and title='DDOS' and body='fix now'"
   	Expected result: 
 		This notification should be delivered (matches filter).
 
   Test 8: Use Prompt Templates
   	Ask Claude Code:
-  		"Use the create_decision_notification prompt to create an architecture decision about using Redis for caching"
+  		"publish a notification to engineering channel about an architecture decision about using Redis for caching"
   	Expected result: 
 		Claude will use the MCP prompt template to help format the notification.
   
