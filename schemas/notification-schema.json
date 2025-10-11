@@ -1,0 +1,230 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://notify-mcp.dev/schemas/notification/v1.0.0",
+  "title": "Team Notification Schema",
+  "description": "Extensible notification schema for team collaboration across genAI platforms",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["schemaVersion", "sender", "context", "information", "metadata"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "Schema version for backward compatibility",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0"
+    },
+    "sender": {
+      "type": "object",
+      "description": "Information about the notification sender",
+      "required": ["id", "name", "role"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the sender"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the sender"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["dev", "consulting", "business", "other"],
+          "description": "Sender's team role"
+        },
+        "aiTool": {
+          "type": "string",
+          "enum": ["claude", "chatgpt", "gemini", "other"],
+          "description": "AI tool used by sender (optional)"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Sender's email address (optional)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "context": {
+      "type": "object",
+      "description": "Contextual metadata about the notification",
+      "required": ["theme", "priority"],
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": [
+            "architecture-decision",
+            "state-update",
+            "memory-sync",
+            "question",
+            "decision",
+            "alert",
+            "info",
+            "discussion"
+          ],
+          "description": "Type/category of the notification"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "default": "medium",
+          "description": "Notification priority level"
+        },
+        "validity": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration timestamp (ISO 8601 format)"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for filtering and categorization"
+        },
+        "relatedConversationId": {
+          "type": "string",
+          "description": "ID of related AI conversation"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Associated project identifier"
+        }
+      },
+      "additionalProperties": true
+    },
+    "information": {
+      "type": "object",
+      "description": "The actual notification content",
+      "required": ["title", "body"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Short notification title"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Detailed notification content"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["text", "markdown", "json", "html"],
+          "default": "text",
+          "description": "Content format type"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Attachment type (e.g., 'link', 'file', 'image')"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Optional attachments"
+        }
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "System-generated metadata",
+      "required": ["id", "timestamp"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique notification identifier"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (ISO 8601 format)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Message version for updates"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Pub-Sub channel name"
+        },
+        "replyTo": {
+          "type": "string",
+          "description": "ID of parent notification for threading"
+        },
+        "sequence": {
+          "type": "integer",
+          "description": "Sequence number for ordering"
+        }
+      },
+      "additionalProperties": true
+    },
+    "actions": {
+      "type": "array",
+      "description": "Suggested actions for recipients",
+      "items": {
+        "type": "object",
+        "required": ["type", "label"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["acknowledge", "respond", "review", "approve", "reject", "custom"],
+            "description": "Action type"
+          },
+          "label": {
+            "type": "string",
+            "description": "Action button label"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Target URL for the action"
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional action-specific data"
+          }
+        }
+      }
+    },
+    "visibility": {
+      "type": "object",
+      "description": "Access control settings",
+      "properties": {
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["dev", "consulting", "business", "all"]
+          },
+          "description": "Teams that can see this notification"
+        },
+        "private": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether notification is private"
+        },
+        "allowedUsers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific user IDs with access (if private)"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

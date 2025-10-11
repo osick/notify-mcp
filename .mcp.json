@@ -1,0 +1,8 @@
+{"mcpServers": {
+"memory": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"]},
+"sequential-thinking": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]},
+"playwright": {"command": "npx", "args": ["@playwright/mcp@latest"]},
+"responsible-vibe": {"command": "npx", "args": ["responsible-vibe-mcp"]},
+"serena":{"type": "stdio", "command": "uvx", "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide-assistant", "--project", "$(pwd)"]}
+}
+}

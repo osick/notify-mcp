@@ -1,0 +1,4 @@
+{"mcpServers":{
+  "notify-mcp": {"command": "uv", "args": ["run", "python", "-m", "notify_mcp"], "cwd": "/home/os/development/notify-mcp"}
+}}
+

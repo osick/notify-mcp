@@ -1,0 +1,97 @@
+  Test 1: List Available Channels
+
+  	Ask Claude Code:
+  		"List all notification channels using the notify-mcp server"
+  	Expected result: 
+		Should see the default "general" channel that's created on startup.
+
+
+  Test 2: Create a New Channel
+  	Ask Claude Code:
+  		"Create a new notification channel called 'engineering' with description 'Engineering team updates'"
+  	Expected result: 
+		Success message with channel ID and name.
+
+
+  Test 3: Subscribe to a Channel
+  	Ask Claude Code:
+  		"Subscribe me to the engineering channel with high priority filter"
+  	Expected result: 
+		Subscription confirmation with subscription ID.
+
+
+  Test 4: Publish a Notification
+  	Ask Claude Code:
+  		"Publish a notification to the engineering channel:
+  		- Title: 'Database Migration Complete'
+  		- Body: 'PostgreSQL migration completed successfully. All services are operational.'
+  		- Priority: high
+  		- Theme: state-update
+  		- Tags: backend, database"
+  	Expected result: 
+		Notification published with delivery stats.
+
+
+  Test 5: View Recent Notifications
+  	Ask Claude Code:
+  		"Show me recent notifications from the engineering channel"
+  	Expected result: 
+		List of recent notifications (using the MCP resource notification://engineering/recent).
+
+
+  Test 6: View My Subscriptions
+  	Ask Claude Code:
+  		"Show me all my notification subscriptions"
+  	Expected result: 
+		List of all subscriptions with filters.
+
+
+  Test 7: Test Filtering
+  	Ask Claude Code:
+  		"Subscribe to general channel, filtering only critical priority notifications with tag 'security'"
+  	Then:
+  		"Publish a medium priority notification to general channel with tag 'feature'"
+  	Expected result: 
+		The notification should be filtered out (not delivered to this subscription).
+ 	Then:
+  		"Publish a critical priority notification to general channel with tag 'security'"
+  	Expected result: 
+		This notification should be delivered (matches filter).
+
+  Test 8: Use Prompt Templates
+  	Ask Claude Code:
+  		"Use the create_decision_notification prompt to create an architecture decision about using Redis for caching"
+  	Expected result: 
+		Claude will use the MCP prompt template to help format the notification.
+  
+
+
+  Test 9: Channel Information Resource
+  	Ask Claude Code:
+  		"Show me detailed information about the engineering channel"
+  	Expected result: 
+		Channel metadata including subscriber count, notification count, permissions, etc.
+
+
+
+  Step 4: Monitor Server Logs
+
+	 If you want to see what's happening behind the scenes, you can check the server logs. Since the server logs to stderr, Claude
+  	Code should capture these internally. Look for log messages about:
+
+  	- Channel creation
+  	- Subscriptions
+  	- Notification routing
+  	- Delivery statistics
+
+  Step 5: Test Multi-Filter Combinations
+
+  	Try complex filtering scenarios:
+
+  	"Subscribe to engineering channel with filters:
+  	- Priority: high and critical
+  	- Tags: backend OR api
+  	- Theme: architecture-decision OR alert"
+
+  	Then publish various notifications to test that only matching ones would be delivered.
+
