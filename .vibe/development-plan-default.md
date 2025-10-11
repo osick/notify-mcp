@@ -593,8 +593,12 @@ CMD ["uv", "run", "python", "-m", "notify_mcp"]
   - [x] Fixed snake_case vs camelCase mismatch in Pydantic models
   - [x] Added notification schema as MCP resource (schema://notification)
   - [x] All 48 tests passing after fixes
-- [ ] Create example Python client (examples/basic_client.py)
-- [ ] Create example workflow (examples/team_workflow.py)
+  - [x] Fixed JSON validation to exclude None values
+  - [x] Fixed AnyUrl handling in resource handlers
+  - [x] Created 6 slash commands in .claude/commands/
+- [x] Create example Python client (examples/basic_client.py)
+- [x] Create example workflow (examples/team_workflow.py)
+- [x] Create examples README with usage instructions
 
 #### Deployment & Quality
 - [x] Python package properly configured (pyproject.toml)
