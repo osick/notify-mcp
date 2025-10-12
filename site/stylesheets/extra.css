@@ -1,0 +1,69 @@
+/* Custom styles for Notify-MCP documentation */
+
+/* Hero section styling */
+.hero {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--md-primary-fg-color);
+}
+
+/* Grid cards styling */
+.grid.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.grid.cards > * {
+    padding: 1.5rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.5rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.grid.cards > *:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Center text utility */
+.center-text {
+    text-align: center;
+}
+
+/* Icon sizing for feature cards */
+.lg.middle {
+    font-size: 2rem;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
+
+/* Code block improvements */
+.highlight {
+    margin: 1rem 0;
+}
+
+/* Admonition styling enhancements */
+.admonition {
+    margin: 1.5rem 0;
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+    font-weight: 600;
+}
+
+/* Button group spacing */
+.md-button + .md-button {
+    margin-left: 0.5rem;
+}

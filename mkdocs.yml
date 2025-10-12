@@ -1,0 +1,184 @@
+site_name: Notify-MCP Documentation
+site_description: Pub-Sub MCP server for seamless team collaboration across AI platforms
+site_author: Notify-MCP Team
+site_url: https://osick.github.io/notify-mcp/
+
+repo_name: osick/notify-mcp
+repo_url: https://github.com/osick/notify-mcp
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  features:
+    - navigation.instant        # Instant loading
+    - navigation.tracking       # URL updates with scroll
+    - navigation.tabs          # Top-level tabs
+    - navigation.tabs.sticky   # Sticky tabs
+    - navigation.sections      # Sections in sidebar
+    - navigation.expand        # Expand sections by default
+    - navigation.path          # Breadcrumbs
+    - navigation.indexes       # Index pages for sections
+    - navigation.top           # Back to top button
+    - search.suggest           # Search suggestions
+    - search.highlight         # Highlight search terms
+    - search.share            # Share search link
+    - toc.follow              # TOC follows scroll
+    - content.code.copy       # Copy button for code blocks
+    - content.code.annotate   # Annotations in code blocks
+    - content.tabs.link       # Link content tabs
+
+  icon:
+    repo: fontawesome/brands/github
+    admonition:
+      note: octicons/tag-16
+      abstract: octicons/checklist-16
+      info: octicons/info-16
+      tip: octicons/squirrel-16
+      success: octicons/check-16
+      question: octicons/question-16
+      warning: octicons/alert-16
+      failure: octicons/x-circle-16
+      danger: octicons/zap-16
+      bug: octicons/bug-16
+      example: octicons/beaker-16
+      quote: octicons/quote-16
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - tags
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/osick/notify-mcp
+      name: GitHub Repository
+
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: Thanks for your feedback! Help us improve by creating an issue.
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Configuration: getting-started/configuration.md
+
+  - Use Cases:
+    - use-cases/index.md
+    - Architecture Decisions: use-cases/architecture-decisions.md
+    - Team Coordination: use-cases/team-coordination.md
+    - Incident Response: use-cases/incident-response.md
+    - Project Updates: use-cases/project-updates.md
+    - Cross-Platform AI: use-cases/cross-platform-ai.md
+    - Real-World Scenarios: use-cases/real-world-scenarios.md
+
+  - Guides:
+    - Storage Configuration: guides/storage-configuration.md
+    - Team Collaboration: guides/team-collaboration.md
+    - Best Practices: guides/best-practices.md
+    - Troubleshooting: guides/troubleshooting.md
+
+  - API Reference:
+    - api-reference/index.md
+    - Tools: api-reference/tools.md
+    - Resources: api-reference/resources.md
+    - Prompts: api-reference/prompts.md
+    - Configuration Options: api-reference/configuration.md
+
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Storage: architecture/storage.md
+    - Pub-Sub Model: architecture/pub-sub-model.md
+
+  - Examples:
+    - Basic Usage: examples/basic-usage.md
+    - Advanced Workflows: examples/advanced-workflows.md
+    - Integration: examples/integration.md
+
+  - About:
+    - Roadmap: about/roadmap.md
+    - Changelog: about/changelog.md
+    - Contributing: about/contributing.md
+
+copyright: Copyright &copy; 2025 Notify-MCP
