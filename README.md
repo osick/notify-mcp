@@ -4,8 +4,9 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![MCP](https://img.shields.io/badge/MCP-1.0-green.svg)](https://modelcontextprotocol.io/)
-[![Tests](https://img.shields.io/badge/tests-48%20passing-brightgreen.svg)](./tests/)
-[![Coverage](https://img.shields.io/badge/coverage-64%25-yellow.svg)](./tests/)
+[![Tests](https://img.shields.io/badge/tests-62%20passing-brightgreen.svg)](./tests/)
+[![Coverage](https://img.shields.io/badge/coverage-70%25-yellow.svg)](./tests/)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](./pyproject.toml)
 
 ---
 
@@ -36,8 +37,9 @@ Notify-MCP enables **teams to share notifications, decisions, and status updates
 - 🎯 **Smart Filtering**: Subscribe with filters (priority, tags, themes, sender roles)
 - 🔔 **Pub-Sub Architecture**: Decoupled notification delivery via channels
 - 📚 **Notification History**: Retrieve recent notifications (last 50 per channel)
+- 💾 **Persistent Storage**: SQLite database for team collaboration (v1.1.0+)
 - 🔐 **Type-Safe**: Full Pydantic validation with JSON Schema
-- 🧪 **Well-Tested**: 48 unit tests with 64% code coverage
+- 🧪 **Well-Tested**: 62 unit tests with 70% code coverage
 
 ### MCP Protocol Support
 
@@ -125,6 +127,54 @@ uv run python -m notify_mcp --help
 ```
 
 **Restart Claude** after updating the config file.
+
+### Storage Configuration
+
+**New in v1.1.0**: Persistent storage enables team collaboration through shared databases.
+
+Configure storage via environment variables in the MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "notify-mcp": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "notify_mcp"],
+      "cwd": "/absolute/path/to/notify-mcp",
+      "env": {
+        "NOTIFY_MCP_STORAGE_TYPE": "sqlite",
+        "NOTIFY_MCP_SQLITE_PATH": "~/.notify-mcp/storage.db",
+        "NOTIFY_MCP_MAX_HISTORY": "1000"
+      }
+    }
+  }
+}
+```
+
+**Storage Options**:
+
+| Variable | Options | Default | Description |
+|----------|---------|---------|-------------|
+| `NOTIFY_MCP_STORAGE_TYPE` | `memory`, `sqlite` | `memory` | Storage backend type |
+| `NOTIFY_MCP_SQLITE_PATH` | file path | `~/.notify-mcp/storage.db` | SQLite database path |
+| `NOTIFY_MCP_MAX_HISTORY` | integer | `1000` | Max notifications per channel (LRU cache) |
+
+**Storage Types**:
+
+- **`memory`** (default): In-memory storage, fast but not persistent across restarts
+- **`sqlite`**: File-based SQLite database, persistent and shareable across team members
+
+**Team Collaboration Setup**:
+
+To share notifications across team members, use a shared SQLite database:
+
+```bash
+# Store database in shared network location
+NOTIFY_MCP_STORAGE_TYPE=sqlite
+NOTIFY_MCP_SQLITE_PATH=/shared/team/notify-mcp.db
+```
+
+All team members pointing to the same database file will share channels, subscriptions, and notification history! 🎉
 
 #### Using Slash Commands in Claude Code
 
@@ -435,32 +485,46 @@ notify-mcp/
 ├── src/notify_mcp/
 │   ├── server.py           # Main MCP server
 │   ├── models/             # Pydantic models (Notification, Channel, Subscription)
+│   ├── config/             # Configuration
+│   │   └── storage_config.py  # Storage settings
 │   ├── core/               # Business logic
 │   │   ├── channel_manager.py        # Channel CRUD
 │   │   ├── subscription_manager.py   # Subscription management
 │   │   ├── notification_router.py    # Routing & filtering
 │   │   └── notification_validator.py # JSON Schema validation
 │   ├── storage/            # Storage implementations
-│   │   └── memory.py       # In-memory storage (Phase 1)
+│   │   ├── memory.py       # In-memory storage
+│   │   ├── sqlite_storage.py  # SQLite persistent storage (v1.1.0+)
+│   │   ├── models.py       # SQLAlchemy ORM models
+│   │   └── factory.py      # Storage factory
 │   └── utils/              # Filter matching, helpers
 ├── schemas/                # JSON Schemas
-├── tests/                  # Unit tests (48 tests, 64% coverage)
+├── tests/                  # Unit tests (62 tests, 70% coverage)
 ├── examples/               # Example clients
 └── docs/                   # Documentation
 ```
 
 ### Storage
 
-**Phase 1 (Current)**: In-memory storage
-- Fast (no I/O overhead)
-- Suitable for 100-1000 concurrent clients
-- Notifications persist during server lifetime
-- LRU cache (max 1000 notifications per channel)
+**In-Memory Storage** (default):
+- ⚡ Fast (no I/O overhead)
+- 🔄 No persistence across restarts
+- ✅ Suitable for individual use
+- 📊 LRU cache (configurable, default: 1000 notifications per channel)
 
-**Phase 2 (Planned)**: Redis Pub/Sub
-- Persistent storage
+**SQLite Storage** (v1.1.0+):
+- 💾 Persistent across restarts
+- 🤝 **Enables team collaboration** (shared database file)
+- 📦 File-based, no server setup required
+- 🔒 Foreign key constraints with cascade deletes
+- 📈 Suitable for ~100K notifications
+- 🗂️ LRU cache enforced at database level
+
+**Future (Enterprise Edition)**:
+- PostgreSQL for production scale
+- Redis Pub/Sub for real-time updates
 - Multi-server support
-- Scalable to 10,000+ clients
+- Advanced replication and backup
 
 ---
 
@@ -508,21 +572,23 @@ See `examples/README.md` for detailed usage.
 
 ## Testing
 
-- **48 unit tests** covering core functionality
-- **64% code coverage** (85-100% for business logic)
+- **62 unit tests** covering core functionality
+- **70% code coverage** (85-100% for business logic)
 - **Test categories**:
   - Model validation (Pydantic schemas)
-  - Storage operations (CRUD)
+  - Storage operations (in-memory & SQLite)
   - Filter matching (priority, tags, themes)
   - Subscription management
   - Notification routing
   - Channel management
+  - SQLite persistence and LRU cache
+  - Database cascade operations
 
 ---
 
 ## Roadmap
 
-### Phase 1: MVP ✅ (Complete)
+### Phase 1: MVP ✅ (v1.0.0 - Complete)
 - ✅ stdio transport
 - ✅ In-memory storage
 - ✅ 6 MCP tools
@@ -530,13 +596,26 @@ See `examples/README.md` for detailed usage.
 - ✅ Smart filtering
 - ✅ 48 unit tests
 
-### Phase 2: Scaling (Planned)
+### Phase 2A: Persistent Storage ✅ (v1.1.0 - Complete)
+- ✅ SQLite storage adapter
+- ✅ Storage factory pattern
+- ✅ Configuration via environment variables
+- ✅ LRU cache enforcement
+- ✅ Team collaboration via shared database
+- ✅ 62 unit tests with 70% coverage
+
+### Phase 2B: Real-Time Collaboration (In Progress)
 - [ ] HTTP transport
 - [ ] Redis Pub/Sub integration
-- [ ] Persistent storage
+- [ ] WebSocket support
+- [ ] Server-sent events
 - [ ] Multi-server support
-- [ ] Rate limiting
+
+### Phase 2C: Security & Permissions (Planned)
+- [ ] Authentication (API keys, JWT)
 - [ ] Permission enforcement
+- [ ] Rate limiting
+- [ ] Audit logging
 
 ### Phase 3: Advanced Features (Future)
 - [ ] Notification threading (replyTo)

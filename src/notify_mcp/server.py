@@ -16,6 +16,7 @@ from mcp.types import (
     Tool,
 )
 
+from .config.storage_config import StorageSettings
 from .core.channel_manager import ChannelManager
 from .core.notification_router import NotificationRouter
 from .core.notification_validator import NotificationValidator
@@ -28,7 +29,7 @@ from .models import (
     Sender,
     SubscriptionFilter,
 )
-from .storage.memory import InMemoryStorage
+from .storage.factory import close_storage, create_storage
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +39,12 @@ class NotifyMCPServer:
 
     def __init__(self):
         """Initialize the server."""
-        # Initialize storage and managers
-        self.storage = InMemoryStorage(max_history_per_channel=1000)
+        # Storage will be initialized asynchronously in run()
+        self.storage = None  # type: ignore
         self.validator = NotificationValidator()
-        self.subscription_manager = SubscriptionManager(self.storage)
-        self.channel_manager = ChannelManager(self.storage)
-        self.router = NotificationRouter(self.storage, self.subscription_manager)
+        self.subscription_manager = None  # type: ignore
+        self.channel_manager = None  # type: ignore
+        self.router = None  # type: ignore
 
         # Create MCP server
         self.server = Server("notify-mcp")
@@ -501,6 +502,16 @@ Format as an urgent team alert.""",
         """Run the server."""
         logger.info("Starting Notify-MCP server...")
 
+        # Initialize storage from configuration
+        settings = StorageSettings()
+        logger.info(f"Storage configuration: type={settings.storage_type}")
+        self.storage = await create_storage(settings)
+
+        # Initialize managers that depend on storage
+        self.subscription_manager = SubscriptionManager(self.storage)
+        self.channel_manager = ChannelManager(self.storage)
+        self.router = NotificationRouter(self.storage, self.subscription_manager)
+
         # Create default channel
         try:
             await self.channel_manager.create_channel(
@@ -513,5 +524,10 @@ Format as an urgent team alert.""",
         except ValueError:
             pass  # Channel already exists
 
-        async with stdio_server() as (read_stream, write_stream):
-            await self.server.run(read_stream, write_stream, self.server.create_initialization_options())
+        try:
+            async with stdio_server() as (read_stream, write_stream):
+                await self.server.run(read_stream, write_stream, self.server.create_initialization_options())
+        finally:
+            # Cleanup storage on shutdown
+            logger.info("Shutting down server...")
+            await close_storage(self.storage)

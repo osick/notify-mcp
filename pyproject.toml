@@ -1,6 +1,6 @@
 [project]
 name = "notify-mcp"
-version = "1.0.0"
+version = "1.1.0"
 description = "Pub-Sub MCP server for team collaboration across genAI platforms"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -10,6 +10,9 @@ dependencies = [
     "pydantic-settings>=2.1.0",
     "jsonschema>=4.20.0",
     "python-dotenv>=1.0.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "aiosqlite>=0.19.0",
+    "alembic>=1.13.0",
 ]
 
 [project.optional-dependencies]
