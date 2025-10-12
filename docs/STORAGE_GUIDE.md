@@ -473,7 +473,6 @@ For large-scale deployments (20+ users), wait for:
 
 ## Related Documentation
 
-- [Database Schema Design](../docs/product/database-schema.md)
 - [Architecture Overview](ARCHITECTURE.md)
 - [API Reference](API.md)
 - [Usage Guide](USAGE_GUIDE.md)
