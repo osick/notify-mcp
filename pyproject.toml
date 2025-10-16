@@ -1,6 +1,6 @@
 [project]
 name = "notify-mcp"
-version = "1.1.0"
+version = "1.2.0"
 description = "Pub-Sub MCP server for team collaboration across genAI platforms"
 readme = "README.md"
 requires-python = ">=3.11"

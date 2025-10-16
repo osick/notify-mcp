@@ -4,9 +4,11 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from mcp.types import (
     GetPromptResult,
     Prompt,
@@ -17,6 +19,7 @@ from mcp.types import (
 )
 
 from .config.storage_config import StorageSettings
+from .config.transport_config import TransportSettings
 from .core.channel_manager import ChannelManager
 from .core.notification_router import NotificationRouter
 from .core.notification_validator import NotificationValidator
@@ -49,8 +52,9 @@ class NotifyMCPServer:
         # Create MCP server
         self.server = Server("notify-mcp")
 
-        # Track current client (for stdio, only one client)
-        self.current_client_id = "stdio-client"
+        # Multi-client support
+        self.active_clients: dict[str, dict] = {}  # client_id -> session info
+        self._client_context: Optional[str] = None  # Current request context
 
         # Sequence counters per channel
         self.sequences: dict[str, int] = {}
@@ -59,6 +63,17 @@ class NotifyMCPServer:
         self._register_tool_handlers()
         self._register_resource_handlers()
         self._register_prompt_handlers()
+
+    @property
+    def current_client_id(self) -> str:
+        """Get current client ID from context.
+
+        For stdio: Returns fixed "stdio-client"
+        For HTTP: Returns session-specific client ID from context
+        """
+        if self._client_context:
+            return self._client_context
+        return "stdio-client"  # Fallback for stdio mode
 
     def _get_next_sequence(self, channel: str) -> int:
         """Get next sequence number for a channel."""
@@ -498,10 +513,8 @@ Format as an urgent team alert.""",
             else:
                 raise ValueError(f"Unknown prompt: {name}")
 
-    async def run(self) -> None:
-        """Run the server."""
-        logger.info("Starting Notify-MCP server...")
-
+    async def _initialize_server(self) -> None:
+        """Initialize server components (storage, managers, default channel)."""
         # Initialize storage from configuration
         settings = StorageSettings()
         logger.info(f"Storage configuration: type={settings.storage_type}")
@@ -524,10 +537,79 @@ Format as an urgent team alert.""",
         except ValueError:
             pass  # Channel already exists
 
+    async def _shutdown_server(self) -> None:
+        """Cleanup server resources."""
+        logger.info("Shutting down server...")
+        await close_storage(self.storage)
+
+    async def run_stdio(self) -> None:
+        """Run server with stdio transport (single client)."""
+        logger.info("Starting Notify-MCP server with stdio transport...")
+
+        await self._initialize_server()
+
         try:
+            self._client_context = "stdio-client"
             async with stdio_server() as (read_stream, write_stream):
-                await self.server.run(read_stream, write_stream, self.server.create_initialization_options())
+                await self.server.run(
+                    read_stream,
+                    write_stream,
+                    self.server.create_initialization_options(),
+                )
         finally:
-            # Cleanup storage on shutdown
-            logger.info("Shutting down server...")
-            await close_storage(self.storage)
+            await self._shutdown_server()
+
+    async def run_http(self, host: str = "0.0.0.0", port: int = 8000) -> None:
+        """Run server with HTTP transport (multi-client).
+
+        Args:
+            host: Host address to bind to
+            port: Port to listen on
+        """
+        logger.info(f"Starting Notify-MCP server with HTTP transport on {host}:{port}...")
+
+        await self._initialize_server()
+
+        try:
+            # Create session manager for multi-client support
+            session_manager = StreamableHTTPSessionManager(self.server)
+
+            # Run HTTP server context
+            async with session_manager.run():
+                # Import uvicorn for HTTP server
+                import uvicorn
+
+                # Create ASGI app that uses session_manager.handle_request
+                async def app(scope, receive, send):
+                    """ASGI app that delegates to session manager."""
+                    await session_manager.handle_request(scope, receive, send)
+
+                # Run HTTP server
+                config = uvicorn.Config(app, host=host, port=port, log_level="info")
+                server = uvicorn.Server(config)
+                await server.serve()
+
+        finally:
+            await self._shutdown_server()
+
+    async def run(self, transport: Optional[str] = None) -> None:
+        """Run server with configured transport.
+
+        Args:
+            transport: Transport type ("stdio" or "http"). If None, reads from config.
+        """
+        # Get transport settings
+        settings = TransportSettings()
+        transport_type = transport or settings.transport_type
+
+        logger.info(f"Transport: {transport_type}")
+
+        if transport_type == "stdio":
+            await self.run_stdio()
+        elif transport_type == "http":
+            await self.run_http(
+                host=settings.http_host,
+                port=settings.http_port,
+            )
+        else:
+            raise ValueError(f"Unknown transport type: {transport_type}")

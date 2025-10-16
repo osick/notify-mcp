@@ -6,7 +6,7 @@
 [![MCP](https://img.shields.io/badge/MCP-1.0-green.svg)](https://modelcontextprotocol.io/)
 [![Tests](https://img.shields.io/badge/tests-62%20passing-brightgreen.svg)](./tests/)
 [![Coverage](https://img.shields.io/badge/coverage-70%25-yellow.svg)](./tests/)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](./pyproject.toml)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./pyproject.toml)
 
 ---
 
@@ -46,7 +46,7 @@ Notify-MCP enables **teams to share notifications, decisions, and status updates
 - **6 Tools**: publish, subscribe, unsubscribe, list channels, create channel, get subscriptions
 - **3 Resources**: notification history, channel info, notification schema
 - **2 Prompts**: Architecture decision and alert templates
-- **Transport**: stdio (Phase 1), HTTP planned (Phase 2)
+- **Transport**: stdio (default), HTTP (v1.2.0+) for remote collaboration
 
 ### Notification Schema
 
@@ -175,6 +175,61 @@ NOTIFY_MCP_SQLITE_PATH=/shared/team/notify-mcp.db
 ```
 
 All team members pointing to the same database file will share channels, subscriptions, and notification history! 🎉
+
+### HTTP Transport Configuration
+
+**New in v1.2.0**: Run notify-mcp as an HTTP server for remote collaboration!
+
+Configure HTTP transport via environment variables:
+
+```json
+{
+  "mcpServers": {
+    "notify-mcp-http": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "notify_mcp"],
+      "cwd": "/absolute/path/to/notify-mcp",
+      "env": {
+        "NOTIFY_MCP_TRANSPORT_TYPE": "http",
+        "NOTIFY_MCP_HTTP_HOST": "0.0.0.0",
+        "NOTIFY_MCP_HTTP_PORT": "8000",
+        "NOTIFY_MCP_STORAGE_TYPE": "sqlite",
+        "NOTIFY_MCP_SQLITE_PATH": "/shared/notify-mcp.db"
+      }
+    }
+  }
+}
+```
+
+**Transport Options**:
+
+| Variable | Options | Default | Description |
+|----------|---------|---------|-------------|
+| `NOTIFY_MCP_TRANSPORT_TYPE` | `stdio`, `http` | `stdio` | Transport protocol |
+| `NOTIFY_MCP_HTTP_HOST` | IP address | `0.0.0.0` | HTTP server host (binds to all interfaces) |
+| `NOTIFY_MCP_HTTP_PORT` | port number | `8000` | HTTP server port |
+
+**HTTP Server Endpoint**: `http://<host>:<port>/mcp`
+
+**Running Standalone HTTP Server**:
+
+```bash
+# Using environment variables
+export NOTIFY_MCP_TRANSPORT_TYPE=http
+export NOTIFY_MCP_HTTP_PORT=8000
+uv run python -m notify_mcp
+
+# Or use the example script
+uv run python examples/run_http_server.py
+```
+
+**Benefits of HTTP Transport**:
+- 🌐 **Remote Access**: Connect from anywhere on the network
+- 👥 **Multi-Client**: Multiple AI assistants connecting simultaneously
+- ☁️ **Cloud Deployment**: Deploy to Railway, Render, Fly.io, AWS, etc.
+- 🔄 **Real-Time Collaboration**: All clients see updates instantly
+
+**Security Note**: Community Edition HTTP transport has **no authentication**. For production use with auth, JWT, and monitoring, see **Enterprise Edition**.
 
 #### Using Slash Commands in Claude Code
 
@@ -604,14 +659,20 @@ See `examples/README.md` for detailed usage.
 - ✅ Team collaboration via shared database
 - ✅ 62 unit tests with 70% coverage
 
-### Phase 2B: Real-Time Collaboration (In Progress)
-- [ ] HTTP transport
-- [ ] Redis Pub/Sub integration
-- [ ] WebSocket support
-- [ ] Server-sent events
-- [ ] Multi-server support
+### Phase 2B: HTTP Transport ✅ (v1.2.0 - Complete)
+- ✅ HTTP transport (Streamable HTTP via MCP SDK)
+- ✅ Multi-client session management
+- ✅ Configuration-based transport selection
+- ✅ Remote collaboration support
+- ✅ Cloud deployment ready
 
-### Phase 2C: Security & Permissions (Planned)
+### Phase 2C: Advanced Real-Time (Planned)
+- [ ] Redis Pub/Sub integration
+- [ ] WebSocket support for push notifications
+- [ ] Server-sent events
+- [ ] Multi-server horizontal scaling
+
+### Phase 2D: Security & Permissions (Planned)
 - [ ] Authentication (API keys, JWT)
 - [ ] Permission enforcement
 - [ ] Rate limiting

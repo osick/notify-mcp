@@ -155,6 +155,7 @@ nav:
 
   - Guides:
     - Storage Configuration: guides/storage-configuration.md
+    - HTTP Transport & Deployment: guides/http-deployment.md
     - Team Collaboration: guides/team-collaboration.md
     - Best Practices: guides/best-practices.md
     - Troubleshooting: guides/troubleshooting.md
